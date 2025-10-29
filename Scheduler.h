@@ -26,6 +26,7 @@ public:
     void addSchedule(std::shared_ptr<Schedule> schedule);
     void removeSchedule(int scheduleId);
     void checkAndRunSchedules();
+    void runLoop();
 };
 
 #endif // SCHEDULER_H

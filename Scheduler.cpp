@@ -2,9 +2,11 @@
 #include <iostream>
 #include <ctime>
 #include <algorithm>
+#include <thread>
 
 void Scheduler::addSchedule(std::shared_ptr<Schedule> schedule) {
     schedules.push_back(schedule);
+    std::cout << "Schedule added for device ID: " << schedule->deviceId << std::endl;
 }
 
 void Scheduler::removeSchedule(int scheduleId) {
@@ -19,17 +21,23 @@ void Scheduler::checkAndRunSchedules() {
 
     for (auto& schedule : schedules) {
         if (now >= schedule->scheduledTime) {
-            // Execute scheduled action
             schedule->action();
             std::cout << "Schedule executed for device ID: " << schedule->deviceId << std::endl;
 
-            // For one-time schedules, remove after execution
             if (schedule->scheduleType == "once") {
                 removeSchedule(schedule->id);
-            } else {
-                // For recurring schedules, update next scheduled time based on type
-                // This part can be enhanced for weekly/daily updates
+            } else if (schedule->scheduleType == "daily") {
+                schedule->scheduledTime += std::chrono::hours(24);
+            } else if (schedule->scheduleType == "weekly") {
+                schedule->scheduledTime += std::chrono::hours(24 * 7);
             }
         }
+    }
+}
+
+void Scheduler::runLoop() {
+    while (true) {
+        checkAndRunSchedules();
+        std::this_thread::sleep_for(std::chrono::seconds(30)); // check every 30 seconds
     }
 }

@@ -29,20 +29,26 @@ void Device::turnOff() {
     state = DeviceState::OFF;
 }
 
+void Device::activate() {
+    state = DeviceState::ACTIVE;
+}
+
+void Device::deactivate() {
+    state = DeviceState::INACTIVE;
+}
+
 void Device::setState(DeviceState newState) {
     state = newState;
 }
 
 void Device::toggle() {
     if (type == DeviceType::SENSOR) {
-        // Sensors toggle ACTIVE <-> INACTIVE
         if (state == DeviceState::ACTIVE) {
-            state = DeviceState::INACTIVE;
+            deactivate();
         } else {
-            state = DeviceState::ACTIVE;
+            activate();
         }
     } else {
-        // All other devices toggle ON <-> OFF
         if (state == DeviceState::ON) {
             turnOff();
         } else {

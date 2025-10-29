@@ -35,6 +35,8 @@ public:
 
     virtual void turnOn();
     virtual void turnOff();
+    virtual void activate();
+    virtual void deactivate();
     virtual void setState(DeviceState newState);
     virtual void toggle();
 
