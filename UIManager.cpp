@@ -55,8 +55,6 @@ void UIManager::run() {
         }).detach();
         schedulerStarted = true;
     }
-    if (!ruleEngine)
-    ruleEngine = std::make_shared<RuleEngine>();
     while (true) {
         clearScreen();
         printMainMenu();
@@ -70,9 +68,6 @@ void UIManager::run() {
         else if (input == "S" || input == "s") {
             sceneMenu();
         }
-        else if (input == "R" || input == "r") {
-            modifySimulatedConditionsMenu();
-        }  
         else {
             try {
                 int roomNum = std::stoi(input);
@@ -107,8 +102,7 @@ void UIManager::printMainMenu() {
         }
     }
     if (count != 0) std::cout << std::endl;
-    std::cout << "\n[0] Exit   [R] Modify Simulated Conditions\n";
-    std::cout << "[S] Smart Scenes/Modes\n";
+    std::cout << "\n[0] Exit   [S] Smart Scenes/Modes\n";
 }
 
 void UIManager::roomMenu(std::shared_ptr<Room> room) {
@@ -139,11 +133,11 @@ void UIManager::roomMenu(std::shared_ptr<Room> room) {
         }
 
         std::cout << "-----------------------------------------------\n";
-        std::cout << "[A] Toggle Device  [B] Add Schedule  [C] Apply Scene  [D] Rule-Based Automation  [E] Return to Main Menu\n>>> Select Option: ";
+        std::cout << "[A] Toggle Device  [B] Add Schedule  [C] Apply Scene  [D] Return to Main Menu\n>>> Select Option: ";
         std::string choice;
         std::getline(std::cin, choice);
 
-        if (choice == "E" || choice == "e") break;
+        if (choice == "D" || choice == "d") break;
         else if (choice == "A" || choice == "a") {
             int deviceId;
             std::cout << "Enter Device ID to toggle: ";
@@ -232,35 +226,6 @@ void UIManager::roomMenu(std::shared_ptr<Room> room) {
                 std::cout << "Scene applied.\n";
             pause();
         }
-        else if (choice == "D" || choice == "d") {
-            int deviceId;
-            std::cout << "Enter Device ID to automate: ";
-            std::cin >> deviceId;
-            auto device = room->getDeviceById(deviceId);
-            if (!device) {
-                std::cout << "Invalid device ID.\n";
-                pause();
-                return;
-            }
-            if (device->getType() == DeviceType::LIGHT || device->getType() == DeviceType::SENSOR) {
-                std::cout << "Apply motion-based automation? (y/n): ";
-                char c; 
-                std::cin >> c;
-                if (c == 'y' || c == 'Y')
-                    ruleEngine->addRule(Rule(deviceId, "motion"));
-            } 
-            else {
-                std::cout << "1. Turn ON above temperature\n2. Turn OFF below temperature\nSelect option: ";
-                int opt; std::cin >> opt;
-                float threshold;
-                std::cout << "Enter temperature threshold (in Celcius): ";
-                std::cin >> threshold;
-                bool turnOnAbove = (opt == 1);
-                ruleEngine->addRule(Rule(deviceId, "temperature", threshold, turnOnAbove));
-            }
-            ruleEngine->applyRules(room);
-            pause();
-        }
         else {
             std::cout << "Invalid option, try again.\n";
             pause();
@@ -325,69 +290,6 @@ void UIManager::sceneMenu() {
             pause();
         }
     }
-}
-
-void UIManager::modifySimulatedConditionsMenu() {
-    clearScreen();
-    const int width = 50;
-    printBorderLine(width);
-    std::cout << COLORBLUE << centerText("MODIFY SIMULATED CONDITIONS", width) << COLORRESET << std::endl;
-    printBorderLine(width);
-    std::cout << "\n[1] Set Global Temperature\n[2] Set Global Motion (Detected/Not Detected)\n[3] Set Temperature for a Specific Room\n[4] Set Motion for a Specific Room\n[B] Back to Main Menu\n\nChoose Option: ";
-    std::string choice;
-    std::cin >> choice;
-    if (choice == "b" || choice == "B") {
-        return;
-    }
-    if (choice == "1") {
-        float temp;
-        std::cout << "Enter temperature (in Celcius): ";
-        std::cin >> temp;
-        for (auto &entry : rooms)
-            ruleEngine->setRoomTemperature(entry.second->getName(), temp);
-        pause();
-    } 
-    else if (choice == "2") {
-        char motion;
-        std::cout << "Is motion detected? (y/n): ";
-        std::cin >> motion;
-        bool detect = (motion == 'y' || motion == 'Y');
-        for (auto &entry : rooms)
-            ruleEngine->setRoomMotion(entry.second->getName(), detect);
-        pause();
-    } 
-    else if (choice == "3") {
-        std::string roomName;
-        std::cout << "Enter room name: ";
-        std::cin.ignore();
-        std::getline(std::cin, roomName);
-        float temp;
-        std::cout << "Enter temperature (in Celcius): ";
-        std::cin >> temp;
-        ruleEngine->setRoomTemperature(roomName, temp);
-        pause();
-    } 
-    else if (choice == "4") {
-        std::string roomName;
-        std::cout << "Enter room name: ";
-        std::cin.ignore();
-        std::getline(std::cin, roomName);
-        char motion;
-        std::cout << "Is motion detected? (y/n): ";
-        std::cin >> motion;
-        bool detect = (motion == 'y' || motion == 'Y');
-        ruleEngine->setRoomMotion(roomName, detect);
-        pause();
-    }
-    else
-    {
-        std::cout << "Invalid input.\n";
-        pause();
-    }
-
-    for (auto &entry : rooms)
-        ruleEngine->applyRules(entry.second);
-    pause();
 }
 
 void UIManager::clearScreen() {

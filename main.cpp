@@ -2,7 +2,6 @@
 #include <memory>
 #include "Device.h"
 #include "Room.h"
-#include "RuleEngine.h"
 #include "Scheduler.h"
 #include "SceneManager.h"
 #include "DatabaseManager.h"
